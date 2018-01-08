@@ -1,0 +1,11 @@
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\bin\Debug\netcoreapp2.0\BlackMirrorApi.deps.json
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\bin\Debug\netcoreapp2.0\BlackMirrorApi.runtimeconfig.json
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\bin\Debug\netcoreapp2.0\BlackMirrorApi.runtimeconfig.dev.json
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\bin\Debug\netcoreapp2.0\BlackMirrorApi.dll
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.csprojResolveAssemblyReference.cache
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.csproj.CoreCompileInputs.cache
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.AssemblyInfoInputs.cache
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.AssemblyInfo.cs
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\bin\Debug\netcoreapp2.0\BlackMirrorApi.pdb
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.dll
+c:\users\jeysongonzales\Source\Repos\BlackMirrorApi\BlackMirrorApi\obj\Debug\netcoreapp2.0\BlackMirrorApi.pdb
