@@ -3,6 +3,7 @@ package com.example.hernanchacca.blackmirror;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.CancellationSignal;
@@ -19,6 +20,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
     private CancellationSignal cancellationSignal;
     private Context context;
+    Usuario userSaved;
 
     public FingerprintHandler(Context mContext) {
         context = mContext;
@@ -26,8 +28,8 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
     //Implement the startAuth method, which is responsible for starting the fingerprint authentication process//
 
-    public void startAuth(FingerprintManager manager, FingerprintManager.CryptoObject cryptoObject) {
-
+    public void startAuth(FingerprintManager manager, FingerprintManager.CryptoObject cryptoObject, Usuario user) {
+        userSaved = user;
         cancellationSignal = new CancellationSignal();
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -60,14 +62,29 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     //so to provide the user with as much feedback as possible I’m incorporating this information into my toast//
     public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
         Toast.makeText(context, "Authentication help\n" + helpString, Toast.LENGTH_LONG).show();
-    }@Override
+    }
+    @Override
 
     //onAuthenticationSucceeded is called when a fingerprint has been successfully matched to one of the fingerprints stored on the user’s device//
     public void onAuthenticationSucceeded(
             FingerprintManager.AuthenticationResult result) {
 
+        SharedPreferences sp1 = context.getApplicationContext().getSharedPreferences("Login1", context.MODE_PRIVATE);
+        String userId = sp1.getString("id", null);
+
+        if (userId == null) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences("Login1", Context.MODE_PRIVATE);
+            SharedPreferences.Editor Ed = sharedPreferences.edit();
+            userId = userSaved.getId();
+            Ed.putString("id", userId);
+            Ed.commit();
+        }
+
+
         Toast.makeText(context, "Success!", Toast.LENGTH_LONG).show();
         Intent mainIntent = new Intent(context, MainActivity.class);
+        mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mainIntent.putExtra("id", userId);
         context.startActivity(mainIntent);
     }
 }

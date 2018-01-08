@@ -5,6 +5,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.KeyguardManager;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.security.keystore.KeyGenParameterSpec;
@@ -35,6 +37,14 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -58,9 +68,11 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity {
+public class Register extends AppCompatActivity  {
 
-    // Declare a string variable for the key we’re going to use in our fingerprint authentication
+    EditText nameText;
+    String userName;
+
     private static final String KEY_NAME = "yourKey";
     private Cipher cipher;
     private KeyStore keyStore;
@@ -70,15 +82,30 @@ public class LoginActivity extends AppCompatActivity {
     private FingerprintManager fingerprintManager;
     private KeyguardManager keyguardManager;
 
-    Usuario user = new Usuario();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
 
-        user.setId(getIntent().getStringExtra("id"));
+        SharedPreferences sp1 = getApplicationContext().getSharedPreferences("Login1", MODE_PRIVATE);
+        String userId = sp1.getString("id", null);
 
+        if (userId != null) {
+            Intent mainIntent = new Intent(getApplicationContext(), LoginActivity.class);
+            mainIntent.putExtra("id", userId);
+            startActivity(mainIntent);
+        }
+
+        nameText = (EditText) findViewById(R.id.userName);
+
+
+
+    }
+
+    public  void registerClick(View view) {
+        userName = nameText.getText().toString();
+        System.out.println("clicked");
         // If you’ve set your app’s minSdkVersion to anything lower than 23, then you’ll need to verify that the device is running Marshmallow
         // or higher before executing any fingerprint-related code
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -114,25 +141,58 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 try {
                     generateKey();
-                } catch (FingerprintException e) {
+                } catch (Register.FingerprintException e) {
                     e.printStackTrace();
                 }
                 if (initCipher()) {
-                    //If the cipher is initialized successfully, then create a CryptoObject instance//
-                    cryptoObject = new FingerprintManager.CryptoObject(cipher);
 
-                    // Here, I’m referencing the FingerprintHandler class that we’ll create in the next section. This class will be responsible
-                    // for starting the authentication process (via the startAuth method) and processing the authentication process events//
-                    FingerprintHandler helper = new FingerprintHandler(this);
-                    helper.startAuth(fingerprintManager, cryptoObject, user);
+                    System.out.println("registering");
+                    String url = "http://blackmirrorapi.azurewebsites.net/api/values";
+                    JSONObject obj = new JSONObject();
+                    try {
+                        obj.put("name", userName);
+                        obj.put("image", "sdasd");
+                        obj.put("rating", "1");
+                        obj.put("nRates", 0);
+                        obj.put("lastLocation", null);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST,
+                            url, obj, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            String userId = null;
+                            try {
+                                userId = response.getString("id");
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
+                            Toast.makeText(getApplicationContext(), "Ingrese Huella!", Toast.LENGTH_LONG).show();
+                            System.out.println("ingrese huella");
+                            System.out.println(response.toString());
+                            //If the cipher is initialized successfully, then create a CryptoObject instance//
+                            Intent loginIntent =  new Intent(getApplicationContext(), LoginActivity.class);
+                            loginIntent.putExtra("id", userId);
+                            startActivity(loginIntent);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            System.out.println(error);
+                        }
+                    });
+                    MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+
                 }
             }
         }
+
     }
 
     //Create the generateKey method that we’ll use to gain access to the Android keystore and generate the encryption key//
 
-    private void generateKey() throws FingerprintException {
+    private void generateKey() throws Register.FingerprintException, FingerprintException {
         try {
             // Obtain a reference to the Keystore using the standard Android keystore container identifier (“AndroidKeystore”)//
             keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -168,7 +228,7 @@ public class LoginActivity extends AppCompatActivity {
                 | CertificateException
                 | IOException exc) {
             exc.printStackTrace();
-            throw new FingerprintException(exc);
+            throw new Register.FingerprintException(exc);
         }
     }
 
@@ -208,6 +268,5 @@ public class LoginActivity extends AppCompatActivity {
             super(e);
         }
     }
-
 }
 

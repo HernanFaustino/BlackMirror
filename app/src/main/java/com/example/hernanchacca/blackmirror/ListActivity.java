@@ -41,10 +41,10 @@ public class ListActivity extends AppCompatActivity implements SimpleGestureFilt
 
         // Detect touched area
         detector = new SimpleGestureFilter(this,this);
+        String userId = getIntent().getStringExtra("id");
 
-
-        String url = "http://blackmirrorapi.azurewebsites.net/api/values";
-        RequestQueue queue = Volley.newRequestQueue(this);  // this = context
+        String url = "http://blackmirrorapi.azurewebsites.net/api/near/" + userId;
+        //RequestQueue queue = Volley.newRequestQueue(this);  // this = context
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
@@ -52,6 +52,7 @@ public class ListActivity extends AppCompatActivity implements SimpleGestureFilt
                 // Succesfull respponse
                 Usuario temp;
                 System.out.println("respons");
+                System.out.println("dasdasxs");
                 Log.i("response", "Success");
                 try {
                     Iterator<String> iter = response. keys();
@@ -61,7 +62,7 @@ public class ListActivity extends AppCompatActivity implements SimpleGestureFilt
                         try {
                             JSONObject userObj = (JSONObject) response.get(key);
                             temp.setName(userObj.getString("name"));
-                            temp.setId(userObj.getString("id"));
+                            temp.setId(key);
                             temp.setRating(userObj.getInt("rating"));
                             temp.setImagen(getResources().getDrawable(R.drawable.profilepictures));
                             usuarios.add(temp);
@@ -87,8 +88,7 @@ public class ListActivity extends AppCompatActivity implements SimpleGestureFilt
 
         // add it to the RequestQueue
         System.out.println("Queued");
-        queue.add(jsObjRequest);
-
+        MySingleton.getInstance(this).addToRequestQueue(jsObjRequest);
         simpleList = (ListView) findViewById(R.id.listViewId);
 
         adapter = new CustomAdapter(this, usuarios);
@@ -100,7 +100,10 @@ public class ListActivity extends AppCompatActivity implements SimpleGestureFilt
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final int pos = position;
                 rateIntent.putExtra("Name", usuarios.get(position).getName());
+                rateIntent.putExtra("id", usuarios.get(position).getId());
                 rateIntent.putExtra("Rating", usuarios.get(position).getRating());
+                rateIntent.putExtra("image", "url");
+                rateIntent.putExtra("nRates", usuarios.get(position).getNumberOQualification());
                 startActivity(rateIntent);
                 //CODIGO AQUI
             }

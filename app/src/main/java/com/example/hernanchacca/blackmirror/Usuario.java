@@ -13,7 +13,9 @@ public class Usuario {
     private Drawable imagen;
 
     int rating;
+
     int numberOQualification;
+
     Location lastLocation ;
     public Usuario() {
         super();
@@ -58,5 +60,21 @@ public class Usuario {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public int getNumberOQualification() {
+        return numberOQualification;
+    }
+
+    public void setNumberOQualification(int numberOQualification) {
+        this.numberOQualification = numberOQualification;
+    }
+
+    public Location getLastLocation() {
+        return lastLocation;
+    }
+
+    public void setLastLocation(Location lastLocation) {
+        this.lastLocation = lastLocation;
     }
 }

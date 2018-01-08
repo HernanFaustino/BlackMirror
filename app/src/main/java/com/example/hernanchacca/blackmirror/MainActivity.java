@@ -11,8 +11,21 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.RatingBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements SimpleGestureFilter.SimpleGestureListener{
 
@@ -21,11 +34,20 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
     private boolean isBound = false;
     private static final int LOCATION_REQUEST_CODE = 122;
     TrackerService localTrackerService;
+    Usuario user = new Usuario();
+
+    RatingBar ratingBar;
+    TextView userName;
+    TextView userRate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+        userName = (TextView) findViewById(R.id.userName);
+        userRate = (TextView) findViewById(R.id.userRate);
 
         // Detect touched area
         detector = new SimpleGestureFilter(this,this);
@@ -37,6 +59,38 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
             System.out.println("NO PERMISOS");
             return;
         }
+
+        final String userId = getIntent().getStringExtra("id");
+        String url = "http://blackmirrorapi.azurewebsites.net/api/values/" + userId;
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    user.setId(userId);
+                    user.setName(response.getString("name"));
+                    user.setNumberOQualification(response.getInt("nRates"));
+                    user.setRating(response.getInt("rating"));
+                } catch (Exception e) {
+
+                }
+                System.out.println(user.getName());
+                System.out.println(user.getRating());
+                ratingBar.setRating(user.getRating());
+                userName.setText("@" + user.getName());
+                userRate.setText(Float.toString(user.getRating()));
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println(error);
+            }
+        });
+
+        // add it to the RequestQueue
+        System.out.println("Main activityi request Queued");
+        MySingleton.getInstance(this).addToRequestQueue(jsObjRequest);
+
     }
 
     @Override
@@ -56,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
                 break;
             case SimpleGestureFilter.SWIPE_LEFT :
                 Intent listIntent = new Intent(this, ListActivity.class);
+                listIntent.putExtra("id", user.getId());
                 startActivity(listIntent);
                 break;
             case SimpleGestureFilter.SWIPE_DOWN :
@@ -117,7 +172,12 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
         if (intent != null)
             return;
         intent = new Intent(this, TrackerService.class);
+        intent.putExtra("id", user.getId());
+        intent.putExtra("name", user.getName());
+        intent.putExtra("rating", user.getRating());
+        intent.putExtra("nRate", user.getNumberOQualification());
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
         System.out.println("Restarted");
 
     }
@@ -129,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             TrackerService.LocalBinder binder = (TrackerService.LocalBinder) iBinder;
             localTrackerService = binder.getService();
+            localTrackerService.updateUser(user);
             isBound = true;
         }
 
@@ -141,4 +202,5 @@ public class MainActivity extends AppCompatActivity implements SimpleGestureFilt
     public void onBackPressed() {
         moveTaskToBack(true);
     }
+
 }

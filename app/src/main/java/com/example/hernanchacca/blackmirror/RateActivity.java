@@ -2,6 +2,7 @@ package com.example.hernanchacca.blackmirror;
 
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.location.Location;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,13 @@ import android.view.MotionEvent;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
 
 public class RateActivity extends AppCompatActivity implements SimpleGestureFilter.SimpleGestureListener{
 
@@ -21,6 +29,7 @@ public class RateActivity extends AppCompatActivity implements SimpleGestureFilt
 
     RatingBar ratingBar;
     TextView userName;
+    Usuario user = new Usuario();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,10 +42,16 @@ public class RateActivity extends AppCompatActivity implements SimpleGestureFilt
         ratingBar = (RatingBar) findViewById(R.id.ratingBar);
         userName = (TextView) findViewById(R.id.userName);
 
-        int numStar = getIntent().getIntExtra("Rating", 0);
+        user.setName(getIntent().getStringExtra("Name"));
+        user.setId(getIntent().getStringExtra("id"));
+        user.setRating(getIntent().getIntExtra("Rating", 0));
+        user.setImagen(getDrawable(R.drawable.profilepictures));
+        user.setNumberOQualification(getIntent().getIntExtra("nRates", 0));
+
+        int numStar = user.getRating();
         Log.i("start", numStar+"");
         ratingBar.setRating(0);
-        userName.setText("@"+ getIntent().getStringExtra("Name") + " " + numStar + " Stars");
+        userName.setText("@"+ user.getName() + " " + numStar + " Stars");
 
         ratingBar = (RatingBar) findViewById(R.id.ratingBar);
         star1 = "android.resource://" + this.getPackageName() + "/raw/star1";
@@ -90,6 +105,7 @@ public class RateActivity extends AppCompatActivity implements SimpleGestureFilt
             case SimpleGestureFilter.SWIPE_DOWN :
                 break;
             case SimpleGestureFilter.SWIPE_UP :    str = "Rating Sent";
+                sendPuntuation(user);
                 Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
                 break;
 
@@ -98,6 +114,31 @@ public class RateActivity extends AppCompatActivity implements SimpleGestureFilt
 
     }
 
+    public void sendPuntuation(Usuario user) {
+        System.out.println("sending");
+        String url = "http://blackmirrorapi.azurewebsites.net/api/near/" + user.getId();
+        JSONObject obj =  new JSONObject();
+        try {
+            obj.put("rate", ratingBar.getRating());
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.PUT, url, obj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Toast.makeText(getApplicationContext(), "Ratin sent", Toast.LENGTH_SHORT).show();
+            }
+        },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    System.out.println("error sending rate");
+                    System.out.println(error);
+                }
+        });
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+    }
     @Override
     public void onDoubleTap() {
 

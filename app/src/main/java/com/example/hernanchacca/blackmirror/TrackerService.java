@@ -39,7 +39,7 @@ public class TrackerService extends Service{
     LocationListener locationListener;
     private static final int LOCATION_REQUEST_CODE = 122;
     private  boolean locationChecked = true;
-
+    Usuario user = null;
 
     @Override
     public void onCreate() {
@@ -82,6 +82,7 @@ public class TrackerService extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         // The service is starting, due to a call to startService()
+
         startUpdatingLocation();
         return START_NOT_STICKY;
 
@@ -121,28 +122,30 @@ public class TrackerService extends Service{
     // Send location information to a heroku app that show the data in a plataform
     // via RestFull API
     public void  sendInformation(Location location) {
+        JSONObject obj = new JSONObject();
+        System.out.println("queee");
+        if (user != null) {
+            try {
+                obj.put("name", null);
+                obj.put("rating", 0);
+                obj.put("nRate", 0);
+                obj.put("image", null);
 
-        Map<String, String> obj = new HashMap<String, String>();
-        JSONObject jsonObj  = null;
+                JSONObject locationObj = new JSONObject();
+                locationObj.put("lat", location.getLatitude());
+                locationObj.put("long", location.getLongitude());
+                locationObj.put("alt", location.getAltitude());
+                obj.put("lastLocation", locationObj);
 
-        try {
+            } catch (Exception e) {
+                // Somthing went wrong
+            }
 
-            obj.put("Lat", location.getLatitude() + "");
-            obj.put("Alt", location.getAltitude() + "");
-            obj.put("lon", location.getLongitude() + "");
-            obj.put("spe", location.getSpeed() + "");
-            obj.put("year", Calendar.getInstance().get(Calendar.YEAR) + "");
-            obj.put("month", Calendar.getInstance().get(Calendar.MONTH) + "");
-            obj.put("day", Calendar.getInstance().get(Calendar.DAY_OF_MONTH) + "");
-            obj.put("hour", Calendar.getInstance().get(Calendar.HOUR) + "");
-            jsonObj = new JSONObject(obj);
-
-        } catch (Exception e) {
-            // Somthing went wrong
+            sendPostRequest("http://blackmirrorapi.azurewebsites.net/api/values/" + user.getId(), obj);
+            System.out.println("Service Sent:" + user.getName());
+        } else {
+            System.out.println("null user");
         }
-
-        //sendPostRequest("https://radiant-atoll-24808.herokuapp.com/api/location/", jsonObj);
-        System.out.println("Service Sent:" + location.getLatitude());
 
     }
 
@@ -181,25 +184,32 @@ public class TrackerService extends Service{
     // Post request wrapper
     public void sendPostRequest(String url, JSONObject jsonObj) {
 
-        //String url = "https://radiant-atoll-24808.herokuapp.com/api/videos";
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                // Succesfull respponse
-                System.out.print("Succesfull");
-            }
-        },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // Error Response
-                        System.out.print(error.getMessage());
-                    }
-                });
+        if (user != null) {
 
-        // Access the RequestQueue through your singleton class.
-        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.PUT, url, jsonObj, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    // Succesfull respponse
+                    System.out.println("Succesfull");
+                    System.out.println(response.toString());
+                }
+            },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            // Error Response
+                            System.out.print(error.getMessage());
+                        }
+                    });
 
+            // Access the RequestQueue through your singleton class.
+            MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+        }
+
+    }
+
+    public void updateUser(Usuario usr) {
+        user = usr;
     }
 
 }
